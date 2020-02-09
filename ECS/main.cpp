@@ -6,14 +6,17 @@
 struct Object
 {
     glm::vec3 Position;
-    glm::vec4 Color;
+    glm::vec3 Color;
 };
-
+#define TestEntity 0 
 TEST_CASE("测试基本方法", "[Func1]")
-{
+{ 
     ECS::Register reg;
-    // System<Object> obj_Sys; 
-    reg.assign<Object>(0); 
+    // System<Object> obj_Sys;
+    Object obj  ; 
+    obj.Position = glm::vec3(0.0f, 0.0f , 0.0f) ;  
+    obj.Color = glm::vec4(0.0f, 0.0f, 0.0f , 0.0f ) ; 
+    reg.assign<Object>( TestEntity , obj); 
     reg.View<Object>() ; 
     REQUIRE(true);
 }
