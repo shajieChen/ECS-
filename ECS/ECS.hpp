@@ -11,6 +11,7 @@ class ISystem
 {
 public:
     ISystem() {}  ;
+    ~ISystem() {} ; 
 };
 /** 处理监听事件 
  * 遍历所有的Sys
@@ -20,6 +21,8 @@ class CSystemHandler : public ISystem
 {
 public:
     CSystemHandler() {} ;
+    ~CSystemHandler() {} ;
+
 private:
     std::array<T, 24> components ; 
 };

@@ -9,11 +9,11 @@ struct Object
     glm::vec4 Color;
 };
 
-TEST_CASE("Name of the case", "[tag]")
+TEST_CASE("测试基本方法", "[Func1]")
 {
     ECS::Register reg;
     // System<Object> obj_Sys; 
     reg.assign<Object>(0); 
-
+    reg.View<Object>() ; 
     REQUIRE(true);
 }
