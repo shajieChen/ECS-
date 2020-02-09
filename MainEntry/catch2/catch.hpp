@@ -1,6 +1,6 @@
 /*
- *  Catch v2.11.1
- *  Generated: 2019-12-28 21:22:11.930976
+ *  Catch v2.11.0
+ *  Generated: 2019-11-15 15:01:56.628356
  *  ----------------------------------------------------------
  *  This file has been merged from multiple headers. Please don't edit it directly
  *  Copyright (c) 2019 Two Blue Cubes Ltd. All rights reserved.
@@ -15,7 +15,7 @@
 
 #define CATCH_VERSION_MAJOR 2
 #define CATCH_VERSION_MINOR 11
-#define CATCH_VERSION_PATCH 1
+#define CATCH_VERSION_PATCH 0
 
 #ifdef __clang__
 #    pragma clang system_header
@@ -241,12 +241,9 @@ namespace Catch {
 // MSVC traditional preprocessor needs some workaround for __VA_ARGS__
 // _MSVC_TRADITIONAL == 0 means new conformant preprocessor
 // _MSVC_TRADITIONAL == 1 means old traditional non-conformant preprocessor
-#  if !defined(__clang__) // Handle Clang masquerading for msvc
-#    if !defined(_MSVC_TRADITIONAL) || (defined(_MSVC_TRADITIONAL) && _MSVC_TRADITIONAL)
-#      define CATCH_INTERNAL_CONFIG_TRADITIONAL_MSVC_PREPROCESSOR
-#    endif // MSVC_TRADITIONAL
-#  endif // __clang__
-
+#  if !defined(_MSVC_TRADITIONAL) || (defined(_MSVC_TRADITIONAL) && _MSVC_TRADITIONAL)
+#    define CATCH_INTERNAL_CONFIG_TRADITIONAL_MSVC_PREPROCESSOR
+#  endif
 #endif // _MSC_VER
 
 #if defined(_REENTRANT) || defined(_MSC_VER)
@@ -3910,6 +3907,7 @@ namespace Generators {
     class SingleValueGenerator final : public IGenerator<T> {
         T m_value;
     public:
+        SingleValueGenerator(T const& value) : m_value( value ) {}
         SingleValueGenerator(T&& value) : m_value(std::move(value)) {}
 
         T const& get() const override {
@@ -3972,21 +3970,21 @@ namespace Generators {
             m_generators.emplace_back(std::move(generator));
         }
         void populate(T&& val) {
-            m_generators.emplace_back(value(std::forward<T>(val)));
+            m_generators.emplace_back(value(std::move(val)));
         }
         template<typename U>
         void populate(U&& val) {
-            populate(T(std::forward<U>(val)));
+            populate(T(std::move(val)));
         }
         template<typename U, typename... Gs>
-        void populate(U&& valueOrGenerator, Gs &&... moreGenerators) {
+        void populate(U&& valueOrGenerator, Gs... moreGenerators) {
             populate(std::forward<U>(valueOrGenerator));
             populate(std::forward<Gs>(moreGenerators)...);
         }
 
     public:
         template <typename... Gs>
-        Generators(Gs &&... moreGenerators) {
+        Generators(Gs... moreGenerators) {
             m_generators.reserve(sizeof...(Gs));
             populate(std::forward<Gs>(moreGenerators)...);
         }
@@ -4017,7 +4015,7 @@ namespace Generators {
     struct as {};
 
     template<typename T, typename... Gs>
-    auto makeGenerators( GeneratorWrapper<T>&& generator, Gs &&... moreGenerators ) -> Generators<T> {
+    auto makeGenerators( GeneratorWrapper<T>&& generator, Gs... moreGenerators ) -> Generators<T> {
         return Generators<T>(std::move(generator), std::forward<Gs>(moreGenerators)...);
     }
     template<typename T>
@@ -4025,11 +4023,11 @@ namespace Generators {
         return Generators<T>(std::move(generator));
     }
     template<typename T, typename... Gs>
-    auto makeGenerators( T&& val, Gs &&... moreGenerators ) -> Generators<T> {
+    auto makeGenerators( T&& val, Gs... moreGenerators ) -> Generators<T> {
         return makeGenerators( value( std::forward<T>( val ) ), std::forward<Gs>( moreGenerators )... );
     }
     template<typename T, typename U, typename... Gs>
-    auto makeGenerators( as<T>, U&& val, Gs &&... moreGenerators ) -> Generators<T> {
+    auto makeGenerators( as<T>, U&& val, Gs... moreGenerators ) -> Generators<T> {
         return makeGenerators( value( T( std::forward<U>( val ) ) ), std::forward<Gs>( moreGenerators )... );
     }
 
@@ -4055,11 +4053,11 @@ namespace Generators {
 } // namespace Catch
 
 #define GENERATE( ... ) \
-    Catch::Generators::generate( CATCH_INTERNAL_LINEINFO, [ ]{ using namespace Catch::Generators; return makeGenerators( __VA_ARGS__ ); } ) //NOLINT(google-build-using-namespace)
+    Catch::Generators::generate( CATCH_INTERNAL_LINEINFO, [ ]{ using namespace Catch::Generators; return makeGenerators( __VA_ARGS__ ); } )
 #define GENERATE_COPY( ... ) \
-    Catch::Generators::generate( CATCH_INTERNAL_LINEINFO, [=]{ using namespace Catch::Generators; return makeGenerators( __VA_ARGS__ ); } ) //NOLINT(google-build-using-namespace)
+    Catch::Generators::generate( CATCH_INTERNAL_LINEINFO, [=]{ using namespace Catch::Generators; return makeGenerators( __VA_ARGS__ ); } )
 #define GENERATE_REF( ... ) \
-    Catch::Generators::generate( CATCH_INTERNAL_LINEINFO, [&]{ using namespace Catch::Generators; return makeGenerators( __VA_ARGS__ ); } ) //NOLINT(google-build-using-namespace)
+    Catch::Generators::generate( CATCH_INTERNAL_LINEINFO, [&]{ using namespace Catch::Generators; return makeGenerators( __VA_ARGS__ ); } )
 
 // end catch_generators.hpp
 // start catch_generators_generic.hpp
@@ -7322,65 +7320,60 @@ namespace Catch {
 #include <type_traits>
 
 namespace Catch {
-    namespace Benchmark {
-        namespace Detail {
-            template <typename T, bool Destruct>
-            struct ObjectStorage
+    namespace Detail {
+        template <typename T, bool Destruct>
+        struct ObjectStorage
+        {
+            using TStorage = typename std::aligned_storage<sizeof(T), std::alignment_of<T>::value>::type;
+
+            ObjectStorage() : data() {}
+
+            ObjectStorage(const ObjectStorage& other)
             {
-                using TStorage = typename std::aligned_storage<sizeof(T), std::alignment_of<T>::value>::type;
+                new(&data) T(other.stored_object());
+            }
 
-                ObjectStorage() : data() {}
+            ObjectStorage(ObjectStorage&& other)
+            {
+                new(&data) T(std::move(other.stored_object()));
+            }
 
-                ObjectStorage(const ObjectStorage& other)
-                {
-                    new(&data) T(other.stored_object());
-                }
+            ~ObjectStorage() { destruct_on_exit<T>(); }
 
-                ObjectStorage(ObjectStorage&& other)
-                {
-                    new(&data) T(std::move(other.stored_object()));
-                }
+            template <typename... Args>
+            void construct(Args&&... args)
+            {
+                new (&data) T(std::forward<Args>(args)...);
+            }
 
-                ~ObjectStorage() { destruct_on_exit<T>(); }
+            template <bool AllowManualDestruction = !Destruct>
+            typename std::enable_if<AllowManualDestruction>::type destruct()
+            {
+                stored_object().~T();
+            }
 
-                template <typename... Args>
-                void construct(Args&&... args)
-                {
-                    new (&data) T(std::forward<Args>(args)...);
-                }
+        private:
+            // If this is a constructor benchmark, destruct the underlying object
+            template <typename U>
+            void destruct_on_exit(typename std::enable_if<Destruct, U>::type* = 0) { destruct<true>(); }
+            // Otherwise, don't
+            template <typename U>
+            void destruct_on_exit(typename std::enable_if<!Destruct, U>::type* = 0) { }
 
-                template <bool AllowManualDestruction = !Destruct>
-                typename std::enable_if<AllowManualDestruction>::type destruct()
-                {
-                    stored_object().~T();
-                }
+            T& stored_object()
+            {
+                return *static_cast<T*>(static_cast<void*>(&data));
+            }
 
-            private:
-                // If this is a constructor benchmark, destruct the underlying object
-                template <typename U>
-                void destruct_on_exit(typename std::enable_if<Destruct, U>::type* = 0) { destruct<true>(); }
-                // Otherwise, don't
-                template <typename U>
-                void destruct_on_exit(typename std::enable_if<!Destruct, U>::type* = 0) { }
-
-                T& stored_object() {
-                    return *static_cast<T*>(static_cast<void*>(&data));
-                }
-
-                T const& stored_object() const {
-                    return *static_cast<T*>(static_cast<void*>(&data));
-                }
-
-                TStorage data;
-            };
-        }
-
-        template <typename T>
-        using storage_for = Detail::ObjectStorage<T, true>;
-
-        template <typename T>
-        using destructable_object = Detail::ObjectStorage<T, false>;
+            TStorage data;
+        };
     }
+
+    template <typename T>
+    using storage_for = Detail::ObjectStorage<T, true>;
+
+    template <typename T>
+    using destructable_object = Detail::ObjectStorage<T, false>;
 }
 
 // end catch_constructor.hpp
@@ -7860,17 +7853,6 @@ namespace Catch {
 #ifdef CATCH_PLATFORM_MAC
 
     #define CATCH_TRAP() __asm__("int $3\n" : : ) /* NOLINT */
-
-#elif defined(CATCH_PLATFORM_IPHONE)
-
-    // use inline assembler
-    #if defined(__i386__) || defined(__x86_64__)
-        #define CATCH_TRAP()  __asm__("int $3")
-    #elif defined(__aarch64__)
-        #define CATCH_TRAP()  __asm__(".inst 0xd4200000")
-    #elif defined(__arm__)
-        #define CATCH_TRAP()  __asm__(".inst 0xe7f001f0")
-    #endif
 
 #elif defined(CATCH_PLATFORM_LINUX)
     // If we can use inline assembler, do it because this allows us to break
@@ -10112,7 +10094,7 @@ namespace {
 
     bool useColourOnPlatform() {
         return
-#if defined(CATCH_PLATFORM_MAC) || defined(CATCH_PLATFORM_IPHONE)
+#ifdef CATCH_PLATFORM_MAC
             !isDebuggerActive() &&
 #endif
 #if !(defined(__DJGPP__) && defined(__STRICT_ANSI__))
@@ -10289,7 +10271,7 @@ namespace Catch {
 // end catch_debug_console.cpp
 // start catch_debugger.cpp
 
-#if defined(CATCH_PLATFORM_MAC) || defined(CATCH_PLATFORM_IPHONE)
+#ifdef CATCH_PLATFORM_MAC
 
 #  include <assert.h>
 #  include <stdbool.h>
@@ -15068,7 +15050,7 @@ namespace Catch {
     }
 
     Version const& libraryVersion() {
-        static Version version( 2, 11, 1, "", 0 );
+        static Version version( 2, 11, 0, "", 0 );
         return version;
     }
 
