@@ -2,6 +2,7 @@
 #include "Lib/catch2/catch.hpp"
 #include "ECS.hpp"
 #include "glm/glm.hpp"
+ 
 struct Object
 {
     glm::vec3 Position;
@@ -11,6 +12,8 @@ struct Object
 TEST_CASE("Name of the case", "[tag]")
 {
     ECS::Register reg;
+    // System<Object> obj_Sys; 
+    reg.assign<Object>(0); 
 
     REQUIRE(true);
 }
