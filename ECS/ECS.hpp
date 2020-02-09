@@ -1,8 +1,11 @@
 #pragma once
 #include <array>
 #include <vector>
+
 namespace ECS
 {
+
+#define MAX_ENTIES_COUNT 24
 using Entity = uint32_t;
 using Version = uint32_t; //用于检查
 
@@ -10,7 +13,7 @@ class ISystem
 {
 public:
     ISystem(){};
-    ~ISystem(){};
+    virtual ~ISystem(){};
 };
 /** 处理监听事件 
  * 遍历所有的Sys
@@ -19,14 +22,18 @@ template <class T>
 class CSystemHandler : public ISystem
 {
 public:
-    CSystemHandler(T data)
+    CSystemHandler(T component)
     {
-        components.fill(data);
+        components.at(0) = component;
     };
-    ~CSystemHandler(){};
+    virtual ~CSystemHandler(){};
+    std::array<T, MAX_ENTIES_COUNT> GetComponets()
+    {
+        return components;
+    }
 
 private:
-    std::array<T, 24> components;
+    std::array<T, MAX_ENTIES_COUNT> components;
 };
 
 /** 用于管理 Entity 和Component的
@@ -35,11 +42,11 @@ private:
 class Register
 {
 public:
-    Register(){};
+    Register() : m_EntityCount(0){};
     ~Register()
     {
         //释放Sys内存避免内存泄漏
-        for (auto handler : m_ComponentsHandlers)
+        for (auto const &handler : m_SysHandlers)
         {
             delete handler;
         }
@@ -49,7 +56,7 @@ public:
     //创建Entity
     Entity Create()
     {
-        return 0;
+        return ++m_EntityCount;
     }
     //判断当前Entity是否合法
     bool Valid(Entity target)
@@ -77,12 +84,18 @@ public:
     template <typename T>
     void assign(Entity id, T data)
     {
-        auto test = new CSystemHandler<T>(data);
-        m_ComponentsHandlers.push_back(test);
+        CSystemHandler<T> *test = new CSystemHandler<T>(data);
+        m_SysHandlers.push_back(test);
+    }
+    /*获取制定Component 和Entity 上的Component */
+    template <typename T>
+    T get(Entity id)
+    {
+        return reinterpret_cast<CSystemHandler<T> *>(m_SysHandlers.at(0))->GetComponets().at(id);
     }
 
 private:
-    uint32_t m_intEntityCount;
-    std::vector<ISystem *> m_ComponentsHandlers;
+    uint32_t m_EntityCount;
+    std::vector<ISystem *> m_SysHandlers;
 };
 } // namespace ECS

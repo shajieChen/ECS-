@@ -11,12 +11,15 @@ struct Object
 #define TestEntity 0 
 TEST_CASE("测试基本方法", "[Func1]")
 { 
-    ECS::Register reg;
+    ECS::Register registry;
     // System<Object> obj_Sys;
     Object obj  ; 
     obj.Position = glm::vec3(0.0f, 0.0f , 0.0f) ;  
     obj.Color = glm::vec4(0.0f, 0.0f, 0.0f , 0.0f ) ; 
-    reg.assign<Object>( TestEntity , obj); 
-    reg.View<Object>() ; 
+    auto Entity = registry.Create() ;  
+    registry.assign<Object>( Entity , obj);  
+    auto testResult = registry.get<Object>(Entity); 
+    
+    REQUIRE(typeid(testResult) == typeid(Object));   
     REQUIRE(true);
 }
