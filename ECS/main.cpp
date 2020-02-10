@@ -39,7 +39,7 @@ SCENARIO("Registry管理ENtity 和Component的问题", "[Registry]")
             S_ECS::Entity entity = registry.Create();
             const Object obj{
                 glm::vec3(1.0f, 1.0f, 1.0f),
-                glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
+                glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};   
             registry.assign<Object>(entity, obj);
             THEN("判断Regisry 内部的Handler 数量 ")
             {
