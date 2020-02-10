@@ -5,12 +5,8 @@
 struct Object
 {
     glm::vec3 Position;
-    glm::vec3 Color;
+    glm::vec4 Color;
 };
-// Object emptyObject;
-// emptyObject.Position = glm::vec3(0.0f);
-// emptyObject.Color = glm::vec3(0.0f);
-
 #pragma region 检测System处理问题
 SCENARIO("处理大量的Component 和Entity 问题", "[System]")
 {
@@ -41,16 +37,24 @@ SCENARIO("Registry管理ENtity 和Component的问题", "[Registry]")
         WHEN("对Entites指定Component")
         {
             S_ECS::Entity entity = registry.Create();
-            Object obj;
-            obj.Position = glm::vec3(1.0f, 1.0f, 1.0f);
-            obj.Color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            const Object obj{
+                glm::vec3(1.0f, 1.0f, 1.0f),
+                glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
             registry.assign<Object>(entity, obj);
             THEN("判断Regisry 内部的Handler 数量 ")
             {
-                Object &objGetResult = registry.get<Object>(entity);
-                std::cout << objGetResult.Color.x << std::endl;  
+                const Object &objGetResult = registry.get<Object>(entity);
+                std::cout << objGetResult.Color.x << std::endl;
                 REQUIRE(objGetResult.Color.x == 1.0f);
                 REQUIRE(objGetResult.Position.x == 1.0f);
+            }
+            THEN("修改Entity结果")
+            {
+                Object &objResult = registry.get<Object>(entity);
+                objResult.Position.x = 2.0f;
+
+                const Object objTestResult = registry.get<Object>(entity);
+                REQUIRE(objResult.Position.x == objTestResult.Position.x);
             }
         }
     }
