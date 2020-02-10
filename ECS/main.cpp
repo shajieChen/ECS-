@@ -7,6 +7,17 @@ struct Object
     glm::vec3 Position;
     glm::vec4 Color;
 };
+#pragma region 测试View视图对Entites的获取
+    SCENARIO("View视图获取Entites" ,"[View]")
+    {
+        S_ECS::View view ; 
+        view.each([](){
+            std::cout << "??" << std::endl ; 
+        });
+    }
+#pragma endregion 
+
+
 #pragma region 检测System处理问题
 SCENARIO("处理大量的Component 和Entity 问题", "[System]")
 {

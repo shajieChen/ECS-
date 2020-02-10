@@ -1,7 +1,7 @@
 #pragma once
 #include "../Core/System.hpp"
 #include "../ConfigFile/S_ECS_Config.hpp"
-#include "../Core/view.hpp"
+#include "../Core/View.hpp"
 namespace S_ECS
 {
 
