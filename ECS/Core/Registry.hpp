@@ -109,7 +109,7 @@ public:
 #pragma endregion
 
 private:
-    uint32_t m_EntityCount;
+    Entity m_EntityCount;
     std::vector<Entity> m_deletedEntites;
     std::vector<ISystem *> m_SysHandlers;
     std::unordered_map<std::string, unsigned int> m_SysHandlerIndices;
