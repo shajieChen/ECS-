@@ -1,11 +1,18 @@
 #pragma once
 #include <array>
 #include <vector>
+#include <__hash_table>
+#include <iostream>
+#include <string>
+#include <map>
+#include <unordered_map>
+#include <typeinfo>
 
+#ifndef MAX_ENTIES_COUNT
+#define MAX_ENTIES_COUNT 24
+#endif
 namespace ECS
 {
-
-#define MAX_ENTIES_COUNT 24
 using Entity = uint32_t;
 using Version = uint32_t; //用于检查
 
@@ -81,21 +88,45 @@ public:
     /*监听Component 方法/成员方法*/
 
     /*其他特殊方法： 清空所有的Entity/ 或者已经知道的Component */
+    /** 添加对象Component到列表中
+     * 如果没有找到 则添加到新的队列里面 
+     * 如果找到的情况下， 依据类型名获取特定行 然后依据EntityID 获取特定数据 (看博客教程)
+     */
     template <typename T>
-    void assign(Entity id, T data)
+    void assign(Entity in_intEntityId, T in_TData)
     {
-        CSystemHandler<T> *test = new CSystemHandler<T>(data);
-        m_SysHandlers.push_back(test);
+        const std::type_info &type = typeid(T);
+
+        if (m_SysHandlerIndices.find(type.name()) != m_SysHandlerIndices.end())
+        {
+            unsigned int sysHandlerIndex = m_SysHandlerIndices[type.name()];
+            CSystemHandler<T> *SysHandlers = reinterpret_cast<CSystemHandler<T> *>(m_SysHandlers.at(sysHandlerIndex)); //Get Corresponding Handlers
+            SysHandlers->GetComponets().at(in_intEntityId) = in_TData;                                                 //Set Correspoonding Location Data
+        }
+        else
+        {
+            CSystemHandler<T> *sysHandler = new CSystemHandler<T>(in_TData);
+            m_SysHandlers.push_back(sysHandler);
+            m_SysHandlerIndices[type.name()] = static_cast<unsigned int>(m_SysHandlers.size() - 1); //
+        }
     }
     /*获取制定Component 和Entity 上的Component */
     template <typename T>
-    T get(Entity id)
+    T get(Entity in_intEntityId)
     {
-        return reinterpret_cast<CSystemHandler<T> *>(m_SysHandlers.at(0))->GetComponets().at(id);
+        const std::type_info &type = typeid(T);
+        if (m_SysHandlerIndices.find(type.name()) != m_SysHandlerIndices.end())
+        {
+            unsigned int sysHandlerIndex = m_SysHandlerIndices[type.name()] ; 
+            return reinterpret_cast<CSystemHandler<T> *>(m_SysHandlers.at(sysHandlerIndex))->GetComponets().at(in_intEntityId);
+        }
+        std::throw_with_nested(in_intEntityId);
     }
 
 private:
     uint32_t m_EntityCount;
     std::vector<ISystem *> m_SysHandlers;
+    std::vector<Entity> m_deletedEntites;
+    std::unordered_map<std::string, unsigned int> m_SysHandlerIndices;
 };
 } // namespace ECS

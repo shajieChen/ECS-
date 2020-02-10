@@ -7,6 +7,12 @@
         "regex": "cpp",
         "string": "cpp",
         "system_error": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "unordered_map": "cpp",
+        "typeinfo": "cpp",
+        "exception": "cpp",
+        "__locale": "cpp",
+        "locale": "cpp",
+        "thread": "cpp"
     }
 }
