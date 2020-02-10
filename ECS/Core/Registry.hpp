@@ -1,47 +1,8 @@
 #pragma once
-#include <array>
-#include <vector>
-#include <__hash_table>
-#include <iostream>
-#include <string>
-#include <map>
-#include <unordered_map>
-#include <typeinfo>
-
-#ifndef MAX_ENTIES_COUNT
-#define MAX_ENTIES_COUNT 24
-#endif
-namespace ECS
+#include "../Core/System.hpp"
+#include "../ConfigFile/S_ECS_Config.hpp"
+namespace S_ECS
 {
-using Entity = uint32_t;
-using Version = uint32_t; //用于检查
-
-class ISystem
-{
-public:
-    ISystem(){};
-    virtual ~ISystem(){};
-};
-/** 处理监听事件 
- * 遍历所有的Sys
-*/
-template <class T>
-class CSystemHandler : public ISystem
-{
-public:
-    CSystemHandler(T component)
-    {
-        components.at(0) = component;
-    };
-    virtual ~CSystemHandler(){};
-    std::array<T, MAX_ENTIES_COUNT> GetComponets()
-    {
-        return components;
-    }
-
-private:
-    std::array<T, MAX_ENTIES_COUNT> components;
-};
 
 /** 用于管理 Entity 和Component的
  * 实现装配 监听等功能
@@ -117,7 +78,7 @@ public:
         const std::type_info &type = typeid(T);
         if (m_SysHandlerIndices.find(type.name()) != m_SysHandlerIndices.end())
         {
-            unsigned int sysHandlerIndex = m_SysHandlerIndices[type.name()] ; 
+            unsigned int sysHandlerIndex = m_SysHandlerIndices[type.name()];
             return reinterpret_cast<CSystemHandler<T> *>(m_SysHandlers.at(sysHandlerIndex))->GetComponets().at(in_intEntityId);
         }
         std::throw_with_nested(in_intEntityId);
@@ -129,4 +90,4 @@ private:
     std::vector<Entity> m_deletedEntites;
     std::unordered_map<std::string, unsigned int> m_SysHandlerIndices;
 };
-} // namespace ECS
+} // namespace S_ECS
