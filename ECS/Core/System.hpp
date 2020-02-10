@@ -6,7 +6,7 @@
 #include <string>
 #include <map>
 #include <unordered_map>
-#include <typeinfo> 
+#include <typeinfo>
 #include "../ConfigFile/S_ECS_Config.hpp"
 namespace S_ECS
 {
@@ -14,8 +14,13 @@ namespace S_ECS
 class ISystem
 {
 public:
-    ISystem(){};
+    ISystem(){
+        hasHandlerList.fill(false);
+    };
     virtual ~ISystem(){};
+    inline std::array<bool , MAX_ENTIES_COUNT> GetHandlerListStatus() {return hasHandlerList ;} 
+private : 
+    std::array<bool , MAX_ENTIES_COUNT> hasHandlerList;  
 };
 /** 处理监听事件 
  * 遍历所有的Sys
@@ -24,10 +29,7 @@ template <class T>
 class CSystemHandler : public ISystem
 {
 public:
-    CSystemHandler(T component)
-    {
-        components.at(0) = component;
-    };
+    CSystemHandler() {} 
     virtual ~CSystemHandler(){};
     std::array<T, MAX_ENTIES_COUNT> GetComponets()
     {

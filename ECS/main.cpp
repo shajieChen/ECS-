@@ -20,14 +20,17 @@ TEST_CASE("测试基本方法", "[Func1]")
     obj.Color = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
     auto Entity = registry.Create();
     registry.assign<Object>(Entity, obj);
-    auto testResult = registry.get<Object>(Entity);
+    auto& testResult = registry.get<Object>(Entity);
 
 
     obj.Position = glm::vec3(1.0f, 1.0f, 1.0f);
     obj.Color = glm::vec4(0.0f, 1.0f , 1.0f, 1.0f) ; 
     auto Entity2 = registry.Create();
     registry.assign<Object>(Entity2, obj); 
-    auto testResult2 = registry.get<Object>(Entity2);
+    auto& testResult2 = registry.get<Object>(Entity2);
+
+
+    REQUIRE(Entity2 == S_ECS::null_Entity);
     REQUIRE(typeid(testResult2) == typeid(Object)) ; 
     REQUIRE(typeid(testResult) == typeid(Object));
     REQUIRE(true);
