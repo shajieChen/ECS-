@@ -25,14 +25,38 @@ struct Position
 #pragma region 测试View视图对Entites的获取
 SCENARIO("View视图获取Entites", "[View]")
 {
-    Position pos = { 3 ,2 ,1} ;
-    Scale scale  ;
-    scale.scale = glm::vec3(3.0f , 1.0f, 1.0f); 
-
-    S_ECS::View<Position, Scale> testView(pos, scale);
-
-    testView.each([](){
-        std::cout << "test" << std::endl ; 
+    Scale scale1  = {
+        glm::vec3(1.0f, 1.0f, 1.0f )
+    }; 
+    Scale scale2 = {
+        glm::vec3(2.0f, 2.0f , 2.0f)
+    };
+    Scale scale3 = {
+        glm::vec3(10.0f, 1.0f, 1.0f )
+    };
+    /*Components set 1 */
+    Position pos[] = {
+        { 3 ,2 ,1}  , 
+        { 3 ,2 ,1}  , 
+        { 3 ,2 ,1}  ,        
+    };
+    /*Components set 2 */
+    Scale scale[] = {
+      scale1,  
+      scale2,
+      scale3
+    } ;
+    /*Entites */
+    std::vector<S_ECS::Entity> entites = {
+        0 ,1 ,2 
+    }; 
+    S_ECS::View<Position, Scale> testView(entites , pos, scale);
+    
+    pos[0] = {1, 1, 1} ; 
+    testView.each([](S_ECS::Entity entity, Position& pos, Scale& scale){
+        std::cout << "ID is " << entity << std::endl; 
+        std::cout << "Pos.x: "  << pos.x << " Pos.y: " << pos.y <<" Pos.z: " << pos.z <<std::endl ; 
+        std::cout << " scale.x : "  << scale.scale.x <<" scale.y : "  << scale.scale.y << " scale.z : "  << scale.scale.z << std::endl;  
     });
 }
 #pragma endregion
