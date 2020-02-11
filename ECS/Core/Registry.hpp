@@ -61,12 +61,12 @@ public:
 #pragma region 分配Components 与Entity
     /*对Entity & Components 进行分配使用*/
     //通过视图View 依据指定要求的Component ， 获取相关的Entities
-    template <typename T>
-    View view(Entity in_Target)
-    {
-        View view ; 
-        return view ; 
-    }
+    // template <typename... T>
+    // View view(Entity in_Target)
+    // {
+    //     // View view ; 
+    //     // return view ; 
+    // }
     /*监听Component 方法/成员方法*/
 
     /*其他特殊方法： 清空所有的Entity/ 或者已经知道的Component */
