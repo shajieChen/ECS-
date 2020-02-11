@@ -12,6 +12,9 @@ class View
 public:
     View(const std::vector<Entity> &matchingEntites, VarType*... mathcingComponents)
         : m_matchingEntites(matchingEntites), m_matchingComponents(mathcingComponents ...){};
+    /*test*/ 
+    View(const std::vector<Entity>& matchingEntites) : m_matchingEntites(matchingEntites) {};  
+    
     ~View(){};
     //测试Lambda方法
     template <typename T>

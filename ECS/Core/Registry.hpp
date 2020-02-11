@@ -4,7 +4,7 @@
 #include "../Core/View.hpp"
 namespace S_ECS
 {
-
+ 
 /** 用于管理 Entity 和Component的
  * 实现装配 监听等功能
 */
@@ -31,16 +31,16 @@ public:
     {
         return ++m_EntityCount;
     }
-    //判断当前Entity是否合法是否存在 
+    //判断当前Entity是否合法是否存在
     bool valid(Entity in_Target)
     {
         return false;
     }
     //判断是否当前Entity 有Component
-    template<typename T >
+    template <typename T>
     bool has(Entity in_Target)
     {
-        return true ; 
+        return true;
     }
     //依据给定的Component类型和Entity 来删除对象
     template <typename T>
@@ -60,13 +60,15 @@ public:
 
 #pragma region 分配Components 与Entity
     /*对Entity & Components 进行分配使用*/
-    //通过视图View 依据指定要求的Component ， 获取相关的Entities
-    // template <typename... T>
-    // View view(Entity in_Target)
-    // {
-    //     // View view ; 
-    //     // return view ; 
-    // }
+    // 通过视图View 依据指定要求的Component ， 获取相关的Entities
+    template <typename... T>
+    View<T...> view()
+    {
+        std::vector<Entity> matchingEntites = {1, 2}; 
+
+        View<T...> testView(matchingEntites , GetRawArray<T>()...);
+        return testView;
+    }
     /*监听Component 方法/成员方法*/
 
     /*其他特殊方法： 清空所有的Entity/ 或者已经知道的Component */
@@ -77,17 +79,17 @@ public:
     template <typename T>
     void assign(Entity in_intEntityId, T in_TData)
     {
-        const std::type_info &type = typeid(T); 
+        const std::type_info &type = typeid(T);
         const bool hasSystemHandler = (m_SysHandlerIndices.find(type.name()) != m_SysHandlerIndices.end());
         if (hasSystemHandler)
-        {  
+        {
             unsigned int sysHandlerIndex = m_SysHandlerIndices[type.name()];
             CSystemHandler<T> *SysHandlers = reinterpret_cast<CSystemHandler<T> *>(m_SysHandlers.at(sysHandlerIndex)); //Get Corresponding Handlers
             SysHandlers->GetComponets().at(in_intEntityId) = in_TData;                                                 //Set Correspoonding Location Data
             SysHandlers->GetHandlerListStatus().at(in_intEntityId) = true;
         }
         else
-        {  
+        {
             CSystemHandler<T> *sysHandler = new CSystemHandler<T>();
             sysHandler->GetComponets().at(in_intEntityId) = in_TData;
             sysHandler->GetHandlerListStatus().at(in_intEntityId) = true;
@@ -111,13 +113,25 @@ public:
 #pragma endregion
 
 #pragma region 其他方法
-    //销毁当前Entity中所有的Components 
-    template<typename T>
+    //销毁当前Entity中所有的Components
     void reset()
     {
-
     }
 #pragma endregion
+
+private:
+    //test
+    template <typename T>
+    T *GetRawArray()
+    {
+        const std::type_info& type = typeid(T);
+        if(m_SysHandlerIndices.find(type.name()) != m_SysHandlerIndices.end())
+        {
+            const unsigned int index = m_SysHandlerIndices[type.name()];
+            return reinterpret_cast<CSystemHandler<T> *>(m_SysHandlers.at(index))->GetComponets().data() ; 
+        } 
+        /*throw exception*/
+    }
 
 private:
     Entity m_EntityCount;

@@ -1,62 +1,67 @@
 #define CATCH_CONFIG_MAIN // This tells Catch to provide a main() - only do this in one cpp file
 
 #include "S_ECS.hpp"
-
+#include "ConfigFile/S_ECS_Config.hpp"
+using namespace S_ECS;
 /*测试样本*/
-#pragma region 测试结构体 
-struct Object
-{
-    glm::vec3 Position;
-    glm::vec4 Color;
-};
-struct Scale
-{
-    glm::vec3 scale;
-};
-struct Position 
-{
-    float x; 
-    float y;
-    float z; 
-};
-#pragma endregion 
 
+// #pragma region 测试View视图对Entites的获取
+// SCENARIO("View视图获取Entites", "[View]")
+// {
+//     Scale scale1 = {
+//         glm::vec3(1.0f, 1.0f, 1.0f)};
+//     Scale scale2 = {
+//         glm::vec3(2.0f, 2.0f, 2.0f)};
+//     Scale scale3 = {
+//         glm::vec3(10.0f, 1.0f, 1.0f)};
+//     /*Components set 1 */
+//     Position pos[] = {
+//         {3, 2, 1},
+//         {3, 2, 1},
+//         {3, 2, 1},
+//     };
+//     /*Components set 2 */
+//     Scale scale[] = {
+//         scale1,
+//         scale2,
+//         scale3};
+//     /*Entites */
+//     std::vector<S_ECS::Entity> entites = {
+//         0, 1, 2};
+//     S_ECS::View<Position, Scale> testView(entites, pos, scale);
 
-#pragma region 测试View视图对Entites的获取
-SCENARIO("View视图获取Entites", "[View]")
+//     pos[0] = {1, 1, 1};
+//     testView.each([](S_ECS::Entity entity, Position &pos, Scale &scale) {
+//         std::cout << "ID is " << entity << std::endl;
+//         std::cout << "Pos.x: " << pos.x << " Pos.y: " << pos.y << " Pos.z: " << pos.z << std::endl;
+//         std::cout << " scale.x : " << scale.scale.x << " scale.y : " << scale.scale.y << " scale.z : " << scale.scale.z << std::endl;
+//     });
+// }
+// #pragma endregion
+
+#pragma region 测试View2
+SCENARIO("View2测试", "[View]")
 {
-    Scale scale1  = {
-        glm::vec3(1.0f, 1.0f, 1.0f )
-    }; 
-    Scale scale2 = {
-        glm::vec3(2.0f, 2.0f , 2.0f)
-    };
-    Scale scale3 = {
-        glm::vec3(10.0f, 1.0f, 1.0f )
-    };
-    /*Components set 1 */
-    Position pos[] = {
-        { 3 ,2 ,1}  , 
-        { 3 ,2 ,1}  , 
-        { 3 ,2 ,1}  ,        
-    };
-    /*Components set 2 */
-    Scale scale[] = {
-      scale1,  
-      scale2,
-      scale3
-    } ;
-    /*Entites */
-    std::vector<S_ECS::Entity> entites = {
-        0 ,1 ,2 
-    }; 
-    S_ECS::View<Position, Scale> testView(entites , pos, scale);
-    
-    pos[0] = {1, 1, 1} ; 
-    testView.each([](S_ECS::Entity entity, Position& pos, Scale& scale){
-        std::cout << "ID is " << entity << std::endl; 
-        std::cout << "Pos.x: "  << pos.x << " Pos.y: " << pos.y <<" Pos.z: " << pos.z <<std::endl ; 
-        std::cout << " scale.x : "  << scale.scale.x <<" scale.y : "  << scale.scale.y << " scale.z : "  << scale.scale.z << std::endl;  
+    S_ECS::Register registry;
+    auto entity = registry.Create();
+    Position pos;
+    pos.x = 1.0f;
+    pos.y = 1.0f;
+    pos.z = 1.0f;
+    registry.assign<Position>(entity, pos);
+
+    auto entity2 = registry.Create();
+    pos.x = 1.0f;
+    pos.y = 1.0f;
+    pos.z = 1.0f;
+    registry.assign<Position>(entity2, pos);
+
+    auto view = registry.view<Position>();
+    view.each([](S_ECS::Entity entity, Position &pos) {
+        std::cout << "currentId :" << entity << std::endl;
+        std::printf("Pos.x : %f\n", pos.x);
+        std::printf("Pos.y : %f\n", pos.y);
+        std::printf("Pos.z : %f\n", pos.z);
     });
 }
 #pragma endregion
