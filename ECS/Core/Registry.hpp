@@ -64,9 +64,13 @@ public:
     template <typename... T>
     View<T...> view()
     {
-        std::vector<Entity> matchingEntites = {1, 2}; 
-
-        View<T...> testView(matchingEntites , GetRawArray<T>()...);
+        //set the Entity  
+        std::array<Entity, MAX_ENTIES_COUNT> m_testMatchingEntites ; 
+        unsigned int maxIndex = 2; 
+        m_testMatchingEntites.at(0) = 1;  
+        m_testMatchingEntites.at(1) = 2; 
+ 
+        View<T...> testView(maxIndex , m_testMatchingEntites.data() , GetRawArray<T>()...) ; 
         return testView;
     }
     /*监听Component 方法/成员方法*/
@@ -84,7 +88,7 @@ public:
         if (hasSystemHandler)
         {
             unsigned int sysHandlerIndex = m_SysHandlerIndices[type.name()];
-            CSystemHandler<T> *SysHandlers = reinterpret_cast<CSystemHandler<T> *>(m_SysHandlers.at(sysHandlerIndex)); //Get Corresponding Handlers
+            CSystemHandler<T> *SysHandlers = static_cast<CSystemHandler<T> *>(m_SysHandlers.at(sysHandlerIndex)); //Get Corresponding Handlers
             SysHandlers->GetComponets().at(in_intEntityId) = in_TData;                                                 //Set Correspoonding Location Data
             SysHandlers->GetHandlerListStatus().at(in_intEntityId) = true;
         }
@@ -100,15 +104,9 @@ public:
     }
     /*获取制定Component 和Entity 上的Component */
     template <typename T>
-    T &get(Entity in_intEntityId)
+    T &get(const Entity in_intEntityId)
     {
-        const std::type_info &type = typeid(T);
-        if (m_SysHandlerIndices.find(type.name()) != m_SysHandlerIndices.end())
-        {
-            unsigned int sysHandlerIndex = m_SysHandlerIndices[type.name()];
-            return reinterpret_cast<CSystemHandler<T> *>(m_SysHandlers.at(sysHandlerIndex))->GetComponets().at(in_intEntityId);
-        }
-        std::throw_with_nested(in_intEntityId);
+        return static_cast<CSystemHandler<T>*>(m_SysHandlers.at(GetSystemIndex<T>()))->GetComponets().data(); 
     }
 #pragma endregion
 
@@ -127,10 +125,20 @@ private:
         const std::type_info& type = typeid(T);
         if(m_SysHandlerIndices.find(type.name()) != m_SysHandlerIndices.end())
         {
-            const unsigned int index = m_SysHandlerIndices[type.name()];
-            return reinterpret_cast<CSystemHandler<T> *>(m_SysHandlers.at(index))->GetComponets().data() ; 
+            return static_cast<CSystemHandler<T>*>(m_SysHandlers.at(GetSystemIndex<T>()))->GetComponets().data(); 
         } 
         /*throw exception*/
+    }
+    template<typename T>
+    unsigned int GetSystemIndex() 
+    {
+        const std::type_info& type = typeid(T);
+        const bool hasSystemHandler = (m_SysHandlerIndices.find(type.name()) != m_SysHandlerIndices.end());
+        if(hasSystemHandler)
+        {
+            return m_SysHandlerIndices[type.name()]; 
+        }
+        assert(false && "doesn't exit");
     }
 
 private:

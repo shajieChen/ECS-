@@ -44,10 +44,7 @@ SCENARIO("View2测试", "[View]")
 {
     S_ECS::Register registry;
     auto entity = registry.Create();
-    Position pos;
-    pos.x = 1.0f;
-    pos.y = 1.0f;
-    pos.z = 1.0f;
+    Position pos = { 1.0f, 1.0f, 1.0f} ;
     registry.assign<Position>(entity, pos);
 
     auto entity2 = registry.Create();
@@ -56,8 +53,8 @@ SCENARIO("View2测试", "[View]")
     pos.z = 1.0f;
     registry.assign<Position>(entity2, pos);
 
-    auto view = registry.view<Position>();
-    view.each([](S_ECS::Entity entity, Position &pos) {
+    registry.view<Position>().each([](S_ECS::Entity entity, Position &pos) 
+    {
         std::cout << "currentId :" << entity << std::endl;
         std::printf("Pos.x : %f\n", pos.x);
         std::printf("Pos.y : %f\n", pos.y);
@@ -146,3 +143,4 @@ SCENARIO("View2测试", "[View]")
 //     REQUIRE(true);
 // }
 // #pragma endregion
+ 
