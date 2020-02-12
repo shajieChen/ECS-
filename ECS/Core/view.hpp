@@ -21,18 +21,18 @@ public:
     void each(T &&Func)
     { 
         for(size_t i = 0 ; i < m_matchingEntitesIndex ; i++)
-        {
-             apply(Func, m_matchingEntitesIndex, m_matchingComponents, std::index_sequence_for<VarType...>{});
+        { 
+             apply(Func, m_matchingEntites[i], m_matchingComponents, std::index_sequence_for<VarType...>{});
         }
     }
 
 private:
-    /** 解除tuple的封装 作为方法的参数 
-     * 获取Entity的值
+    /** 调用上层回调函数 
+     * 
      */
     template <typename Func, typename Tuple, std::size_t... T>
-    void apply(Func &&callBack, Entity entity, const Tuple &componetSet, std::index_sequence<T...>)
-    {
+    void apply(Func &&callBack,const Entity entity, const Tuple &componetSet, std::index_sequence<T...>)
+    {  
         callBack(entity, std::get<T>(componetSet)[entity]...);
     }
 

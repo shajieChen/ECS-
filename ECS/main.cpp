@@ -5,6 +5,9 @@
 using namespace S_ECS;
 /*测试样本*/
 
+// int main(int argc, char *argv[])
+// { 
+// }
 // #pragma region 测试View视图对Entites的获取
 // SCENARIO("View视图获取Entites", "[View]")
 // {
@@ -53,7 +56,7 @@ SCENARIO("View2测试", "[View]")
     pos.z = 1.0f;
     registry.assign<Position>(entity2, pos);
 
-    registry.view<Position>().each([](S_ECS::Entity entity, Position &pos) 
+    registry.view<Position>().each([](S_ECS::Entity entity, Position &pos)
     {
         std::cout << "currentId :" << entity << std::endl;
         std::printf("Pos.x : %f\n", pos.x);
@@ -143,4 +146,3 @@ SCENARIO("View2测试", "[View]")
 //     REQUIRE(true);
 // }
 // #pragma endregion
- 
