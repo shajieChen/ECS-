@@ -31,6 +31,7 @@ public:
     //创建Entity
     Entity Create()
     {
+        assert(testMatchCount < MAX_ENTIES_COUNT && "判断是否到达一个Entity能够创建的Components 数量");
         return ++m_EntityCount;
     }
     //判断当前Entity是否合法是否存在
@@ -68,7 +69,7 @@ public:
     {
         FillMatchingEntities<VarType>();
         (RemoveUnmatchEntites<VarTypes>(), ...);
-        View<VarType, VarTypes...> testView(testMatchCount, m_testMatchingEntites.data(), GetRawArray<VarType>(), GetRawArray<VarTypes>()...);
+        View<VarType, VarTypes...> testView(testMatchCount, m_testMatchingEntites.data(), GetComponentsSet<VarType>(), GetComponentsSet<VarTypes>()...);
         return testView;
     }
     /*监听Component 方法/成员方法*/
@@ -87,14 +88,18 @@ public:
         {
             unsigned int sysHandlerIndex = m_SysHandlerIndices[type.name()];
             CSystemHandler<T> *SysHandlers = static_cast<CSystemHandler<T> *>(m_SysHandlers.at(sysHandlerIndex)); //Get Corresponding Handlers
-            SysHandlers->GetComponets().at(in_intEntityId) = in_TData;                                            //Set Correspoonding Location Data
-            SysHandlers->GetHandlerListStatus().at(in_intEntityId) = true;
+            // SysHandlers->GetComponets().at(in_intEntityId) = in_TData;                                            //Set Correspoonding Location Data
+            SysHandlers->GetComponets().push_back(in_TData);
+            SysHandlers->GetHandlerListStatus().at(in_intEntityId) = SysHandlers->GetComponets().size() - 1 ;
         }
         else
         {
             CSystemHandler<T> *sysHandler = new CSystemHandler<T>();
-            sysHandler->GetComponets().at(in_intEntityId) = in_TData;
-            sysHandler->GetHandlerListStatus().at(in_intEntityId) = true;
+            // sysHandler->GetComponets().at(in_intEntityId) = in_TData;
+            // sysHandler->GetHandlerListStatus().at(in_intEntityId) = true;
+            sysHandler->GetComponets().push_back(in_TData);
+            sysHandler->GetComponets().push_back(in_TData) ; 
+            sysHandler->GetHandlerListStatus().at(in_intEntityId) = sysHandler->GetComponets().size() - 1; 
 
             m_SysHandlers.push_back(sysHandler);
             m_SysHandlerIndices[type.name()] = static_cast<unsigned int>(m_SysHandlers.size() - 1); //
@@ -104,7 +109,8 @@ public:
     template <typename T>
     T &get(const Entity in_intEntityId)
     {
-        return GetComponentsSet<T>()->GetComponets().data();
+        CSystemHandler<T>* collection = GetComponentsSet<T>() ; 
+        return collection->GetComponets().at(collection->GetHandlerListStatus().at(in_intEntityId));
     }
 #pragma endregion
 
@@ -125,7 +131,7 @@ private:
         testMatchCount = 0;
         for (size_t i = 0; i < componentsSet->GetComponets().size(); ++i)
         {
-            if (componentsSet->GetHandlerListStatus().at(i))
+            if (componentsSet->GetHandlerListStatus().at(i) != 0 )
             {
                 m_testMatchingEntites.at(testMatchCount) = i;
                 testMatchCount++;
@@ -141,7 +147,7 @@ private:
         {
             const Entity entity = m_testMatchingEntites.at(i);
 
-            if (!componentsSet->GetHandlerListStatus().at(entity))
+            if (componentsSet->GetHandlerListStatus().at(entity) == 0 )
             {
                 m_testMatchingEntites.at(i) = m_testMatchingEntites.at(i + 1);
                 testMatchCount--;

@@ -10,7 +10,7 @@ template <typename... VarType>
 class View
 {
 public:
-    View(unsigned int matchingEntitesIndex, Entity *matchingEntites, VarType *... matchingComponets)
+    View(Entity matchingEntitesIndex, Entity *matchingEntites, CSystemHandler<VarType> *... matchingComponets)
         : m_matchingEntites(matchingEntites),m_matchingEntitesIndex(matchingEntitesIndex) ,m_matchingComponents(matchingComponets...)
     {
     }
@@ -33,12 +33,12 @@ private:
     template <typename Func, typename Tuple, std::size_t... T>
     void apply(Func &&callBack,const Entity entity, const Tuple &componetSet, std::index_sequence<T...>)
     {  
-        callBack(entity, std::get<T>(componetSet)[entity]...);
+        callBack(entity, std::get<T>(componetSet)->GetComponets().at(std::get<T>(componetSet)->GetHandlerListStatus().at(entity))...);
     }
 
 private:
     Entity* m_matchingEntites;
     unsigned int m_matchingEntitesIndex ; 
-    std::tuple<VarType *...> m_matchingComponents;
+    std::tuple<CSystemHandler<VarType >*...> m_matchingComponents;
 };
 } // namespace S_ECS
