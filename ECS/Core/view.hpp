@@ -32,8 +32,8 @@ private:
      */
     template <typename Func, typename Tuple, std::size_t... T>
     void apply(Func &&callBack,const Entity entity, const Tuple &componetSet, std::index_sequence<T...>)
-    {  
-        callBack(entity, std::get<T>(componetSet)->GetComponets().at(std::get<T>(componetSet)->GetHandlerListStatus().at(entity))...);
+    {
+        callBack(entity, std::get<T>(componetSet)->at(entity)...) ;
     }
 
 private:

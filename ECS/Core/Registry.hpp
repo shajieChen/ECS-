@@ -20,7 +20,7 @@ public:
     ~Register()
     {
         //释放Sys内存避免内存泄漏
-        for (auto const &handler : m_SysHandlers)
+        for (ISystem* handler : m_SysHandlers)
         {
             delete handler;
         }
@@ -43,7 +43,8 @@ public:
     template <typename T>
     bool has(Entity in_Target)
     {
-        return true;
+        const CSystemHandler<T>* collection = GetComponentsSet<T>() ; 
+        return collection->has(in_Target) ; 
     }
     //依据给定的Component类型和Entity 来删除对象
     template <typename T>
@@ -89,19 +90,13 @@ public:
             unsigned int sysHandlerIndex = m_SysHandlerIndices[type.name()];
             CSystemHandler<T> *SysHandlers = static_cast<CSystemHandler<T> *>(m_SysHandlers.at(sysHandlerIndex)); //Get Corresponding Handlers
             // SysHandlers->GetComponets().at(in_intEntityId) = in_TData;                                            //Set Correspoonding Location Data
-            SysHandlers->GetComponets().push_back(in_TData);
-            SysHandlers->GetHandlerListStatus().at(in_intEntityId) = SysHandlers->GetComponets().size() - 1 ;
+            SysHandlers->insert(in_intEntityId, in_TData);
         }
         else
         {
-            CSystemHandler<T> *sysHandler = new CSystemHandler<T>();
-            // sysHandler->GetComponets().at(in_intEntityId) = in_TData;
-            // sysHandler->GetHandlerListStatus().at(in_intEntityId) = true;
-            sysHandler->GetComponets().push_back(in_TData);
-            sysHandler->GetComponets().push_back(in_TData) ; 
-            sysHandler->GetHandlerListStatus().at(in_intEntityId) = sysHandler->GetComponets().size() - 1; 
+            CSystemHandler<T>* collection = new CSystemHandler<T>(in_intEntityId , in_TData);
 
-            m_SysHandlers.push_back(sysHandler);
+            m_SysHandlers.push_back(collection);
             m_SysHandlerIndices[type.name()] = static_cast<unsigned int>(m_SysHandlers.size() - 1); //
         }
     }
@@ -110,7 +105,7 @@ public:
     T &get(const Entity in_intEntityId)
     {
         CSystemHandler<T>* collection = GetComponentsSet<T>() ; 
-        return collection->GetComponets().at(collection->GetHandlerListStatus().at(in_intEntityId));
+        return collection->at(in_intEntityId);
     }
 #pragma endregion
 
@@ -129,9 +124,9 @@ private:
     {
         CSystemHandler<VarType> *componentsSet = GetComponentsSet<VarType>();
         testMatchCount = 0;
-        for (size_t i = 0; i < componentsSet->GetComponets().size(); ++i)
+        for (Entity i = 1; i < componentsSet->GetComponets().size(); ++i)
         {
-            if (componentsSet->GetHandlerListStatus().at(i) != 0 )
+            if (componentsSet->has(i))
             {
                 m_testMatchingEntites.at(testMatchCount) = i;
                 testMatchCount++;
@@ -147,25 +142,14 @@ private:
         {
             const Entity entity = m_testMatchingEntites.at(i);
 
-            if (componentsSet->GetHandlerListStatus().at(entity) == 0 )
+            if (!componentsSet->has(i) )
             {
                 m_testMatchingEntites.at(i) = m_testMatchingEntites.at(i + 1);
                 testMatchCount--;
                 i--;
             }
         }
-    }
-    //test
-    template <typename T>
-    T *GetRawArray()
-    {
-        const std::type_info &type = typeid(T);
-        if (m_SysHandlerIndices.find(type.name()) != m_SysHandlerIndices.end())
-        {
-            return GetComponentsSet<T>()->GetComponets().data();
-        }
-        /*throw exception*/
-    }
+    } 
     template <typename T>
     unsigned int GetSystemIndex()
     {
@@ -175,7 +159,9 @@ private:
         {
             return m_SysHandlerIndices[type.name()];
         }
+
         assert(false && "doesn't exit");
+        return null_Entity ; 
     }
     template <typename VarType>
     CSystemHandler<VarType> *GetComponentsSet()
